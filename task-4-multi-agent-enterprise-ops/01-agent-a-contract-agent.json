@@ -1,0 +1,155 @@
+{
+  "name": "Agent A - Contract Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "clientName"
+            },
+            {
+              "name": "clientEmail"
+            },
+            {
+              "name": "serviceTier"
+            },
+            {
+              "name": "amount",
+              "type": "number"
+            },
+            {
+              "name": "currency"
+            },
+            {
+              "name": "agreementDate"
+            }
+          ]
+        }
+      },
+      "id": "f6a32da3-c1ae-40bb-b2cb-4e56d418120f",
+      "name": "When Called by Supervisor",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Draft a professional service agreement using the details below.\n\nClient name: {{ $json.clientName || \"[Client Name]\" }}\nClient email: {{ $json.clientEmail || \"[Client Email]\" }}\nService tier: {{ $json.serviceTier || \"[Service Tier]\" }}\nFee: {{ $json.amount ? $json.amount + \" \" + String($json.currency || \"USD\").toUpperCase() : \"[Fee]\" }} (one-time, payable via the Stripe checkout link)\nAgreement date: {{ $json.agreementDate || \"[Agreement Date]\" }}\n\nStructure: 1) Parties, 2) Scope of Services for this tier, 3) Fees and Payment, 4) Term and Termination, 5) Confidentiality, 6) Limitation of Liability, 7) Governing Law (leave as [Jurisdiction]), 8) Acceptance. Use plain text with numbered section headings and no markdown. Keep it under 450 words. Use bracketed placeholders for anything not provided. Do not invent deliverables, dates, jurisdiction, legal terms or facts beyond what is given.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a contracts specialist at an enterprise services firm. Write clear, balanced, plain-English service agreements. You only draft contract text: you never create payments, send emails or change client records. Output only the agreement text and end with one line stating that this draft is for business review and is not legal advice."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "85f0f071-49f6-486a-b5d8-57af4bf7733a",
+      "name": "Draft Service Agreement",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {
+          "maxTokens": 1800,
+          "temperature": 0.3
+        }
+      },
+      "id": "33b348b1-88ef-491d-8119-a51894f85673",
+      "name": "OpenRouter - Contract Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = String($input.first().json.text || \"\").trim();\nif (!text) {\n  throw new Error(\"Contract Agent: model returned empty text\");\n}\nreturn [{ json: { text } }];"
+      },
+      "id": "f91b9752-393e-4837-af64-dcc356700b6b",
+      "name": "Validate Contract Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Agent A: Contract Agent\nInput: clientName, clientEmail, serviceTier, amount, currency, agreementDate\nOutput: { text }\nDrafts contract text only. No payments, emails or Airtable writes. Errors propagate to the caller.",
+        "height": 200,
+        "width": 920,
+        "color": 4
+      },
+      "id": "cdb2df0b-c910-4ef3-ba47-90d787a5e464",
+      "name": "Sticky Note 2f7b1856",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -48
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Called by Supervisor": {
+      "main": [
+        [
+          {
+            "node": "Draft Service Agreement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Service Agreement": {
+      "main": [
+        [
+          {
+            "node": "Validate Contract Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter - Contract Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft Service Agreement",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

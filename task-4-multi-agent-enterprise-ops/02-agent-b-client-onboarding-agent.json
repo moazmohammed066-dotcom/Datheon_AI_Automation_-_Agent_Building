@@ -1,0 +1,159 @@
+{
+  "name": "Agent B - Client Onboarding Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "clientName"
+            },
+            {
+              "name": "serviceTier"
+            },
+            {
+              "name": "amountPaid",
+              "type": "number"
+            },
+            {
+              "name": "currency"
+            },
+            {
+              "name": "recordId"
+            },
+            {
+              "name": "recordStatus"
+            },
+            {
+              "name": "paymentVerified",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "id": "d5821a19-d079-40e2-8d38-3ed6928b91b5",
+      "name": "When Called by Supervisor",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create an onboarding plan for a new client. Their payment has already been verified by our billing system; do not comment on payment.\n\nClient name: {{ $json.clientName || \"the client\" }}\nService tier: {{ $json.serviceTier || \"Service\" }}\n\nReturn one JSON object with exactly these keys:\n\"welcomeSummary\": string, at most 2 sentences and 350 characters, warm and professional.\n\"onboardingSteps\": array of exactly 5 strings, each at most 180 characters, in this order: 1) kickoff, 2) access requirements, 3) scope confirmation, 4) milestones, 5) communication.\n\nRules: use generic wording such as \"we will propose a kickoff call time\"; do not invent dates, people, prices, deliverables or tools. Respond with the JSON object only, no markdown.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a client onboarding specialist at an enterprise services firm. You only write onboarding content. You never decide whether a payment succeeded, and you never create channels, invite users, update records or start payments. Output a single valid JSON object and nothing else."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "8dceeced-0c74-413e-bad3-cb37cdefc30f",
+      "name": "Draft Onboarding Plan",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {
+          "maxTokens": 900,
+          "temperature": 0.4
+        }
+      },
+      "id": "58f5749f-87ad-41a0-b13b-feec9d58becd",
+      "name": "OpenRouter - Onboarding Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = String($input.first().json.text || \"\").trim();\nconst start = raw.indexOf(\"{\");\nconst end = raw.lastIndexOf(\"}\");\nif (start === -1 || end <= start) {\n  throw new Error(\"Onboarding Agent: model did not return a JSON object\");\n}\nlet data;\ntry {\n  data = JSON.parse(raw.slice(start, end + 1));\n} catch (e) {\n  throw new Error(\"Onboarding Agent: model returned invalid JSON\");\n}\nconst summary = typeof data.welcomeSummary === \"string\" ? data.welcomeSummary.trim() : \"\";\nconst steps = Array.isArray(data.onboardingSteps)\n  ? data.onboardingSteps.filter((s) => typeof s === \"string\" && s.trim()).map((s) => s.trim())\n  : [];\nif (!summary || steps.length < 3) {\n  throw new Error(\"Onboarding Agent: output failed schema validation\");\n}\nreturn [{ json: {\n  welcomeSummary: summary.slice(0, 500),\n  onboardingSteps: steps.slice(0, 6).map((s) => s.slice(0, 250))\n} }];"
+      },
+      "id": "b8f39b82-06f5-4939-8790-9e4a7f1684f5",
+      "name": "Parse & Validate Onboarding Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Agent B: Client Onboarding Agent\nInput: clientName, serviceTier, amountPaid, currency, recordId, recordStatus, paymentVerified\nOutput: { welcomeSummary, onboardingSteps[] }\nContent only. Never judges payment; only called after the deterministic payment checks pass. No Slack, Airtable or payment actions.",
+        "height": 200,
+        "width": 920,
+        "color": 5
+      },
+      "id": "16fd499a-99f8-4b1a-adad-1b17c4996399",
+      "name": "Sticky Note f6ea3b15",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -48
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Called by Supervisor": {
+      "main": [
+        [
+          {
+            "node": "Draft Onboarding Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Onboarding Plan": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate Onboarding Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter - Onboarding Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft Onboarding Plan",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

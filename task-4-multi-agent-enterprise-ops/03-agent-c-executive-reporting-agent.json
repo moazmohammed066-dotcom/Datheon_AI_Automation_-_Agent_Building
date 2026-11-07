@@ -1,0 +1,140 @@
+{
+  "name": "Agent C - Executive Reporting Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "metrics",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "515a5dae-95d0-436e-b743-1578fee9b6c7",
+      "name": "When Called by Supervisor",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write this week's executive digest from the metrics below. Use only these numbers; never invent, estimate or calculate new figures.\n\n{{ JSON.stringify($json.metrics, null, 2) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are the Chief of Staff writing a concise weekly executive digest for company leadership. Format for Slack mrkdwn only: single asterisks for bold and the bullet character for lists. Do not use markdown headings or double asterisks. Maximum 160 words. Use exactly these section titles in this order: Headline (one sentence), Key Metrics (revenue, active clients, new signups, pending payments), Risks and Opportunities (max 2 bullets), Priority Actions (max 3 bullets). Quote figures exactly as supplied; do not compute percentages, averages or totals that are not in the data. If pending payments exist, flag them as a follow-up item.\n\n\n\nUse ONLY numeric values explicitly provided in the input payload. Never invent, estimate, or infer numerical figures. Before returning the report, verify that every number matches a value in the supplied metrics. If a metric is missing, write \"Not provided\". Do not use numbers from examples or previous executions. Preserve all required report sections and the 180-word limit."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "3f6e1752-af02-48a9-8895-72724a908a28",
+      "name": "Draft Executive Digest",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {
+          "maxTokens": 700,
+          "temperature": 0.4
+        }
+      },
+      "id": "63ecd256-5c99-4b1b-8ce6-858c68b3a08d",
+      "name": "OpenRouter - Digest Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = String($input.first().json.text || \"\").trim();\nconst metrics = $(\"When Called by Supervisor\").first().json.metrics || {};\nif (!text) {\n  throw new Error(\"Executive Reporting Agent: model returned empty text\");\n}\nconst words = text.split(/\\s+/).filter(Boolean).length;\nif (words > 180) {\n  throw new Error(\"Executive Reporting Agent: report exceeds 180 words (\" + words + \")\");\n}\nconst lower = text.toLowerCase();\nconst missing = [\"Headline\", \"Key Metrics\", \"Risks and Opportunities\", \"Priority Actions\"].filter((s) => !lower.includes(s.toLowerCase()));\nif (missing.length) {\n  throw new Error(\"Executive Reporting Agent: missing sections: \" + missing.join(\", \"));\n}\nconst norm = (s) => String(parseFloat(String(s).replace(/,/g, \"\")));\nconst allowed = new Set((JSON.stringify(metrics).match(/\\d+(?:[.,]\\d+)*/g) || []).map(norm));\nconst used = (text.match(/\\d+(?:[.,]\\d+)*/g) || []).map(norm);\nconst unknown = [...new Set(used.filter((n) => !allowed.has(n)))];\nif (unknown.length) {\n  throw new Error(\"Executive Reporting Agent: figures not present in supplied metrics: \" + unknown.join(\", \"));\n}\nreturn [{ json: { text } }];"
+      },
+      "id": "3957a50d-fcc5-47bf-a9f1-826b2581739e",
+      "name": "Validate Digest Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Agent C: Executive Reporting Agent\nInput: metrics (output of Compute Weekly Metrics)\nOutput: { text } for Slack\nUses only supplied figures. Deterministic checks: <=180 words, 4 required sections, every number must exist in the metrics. On failure the caller falls back to raw metrics.",
+        "height": 200,
+        "width": 920,
+        "color": 6
+      },
+      "id": "81cbdaec-6b34-4d3d-99ea-84162423fc34",
+      "name": "Sticky Note d1e509a1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -48
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Called by Supervisor": {
+      "main": [
+        [
+          {
+            "node": "Draft Executive Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Executive Digest": {
+      "main": [
+        [
+          {
+            "node": "Validate Digest Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter - Digest Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft Executive Digest",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

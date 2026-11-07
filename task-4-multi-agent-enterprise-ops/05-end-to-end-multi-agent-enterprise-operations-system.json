@@ -1,0 +1,1993 @@
+{
+  "name": "End-to-End Multi-Agent Enterprise Operations System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "enterprise-ops/client-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bcc16e87-b56a-48f9-b4da-09ce1eecb047",
+      "name": "Client Intake Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1136,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "n1",
+              "name": "clientName",
+              "type": "string",
+              "value": "={{ ($json.body?.client_name ?? $json.client_name ?? \"\").toString().trim() }}"
+            },
+            {
+              "id": "n2",
+              "name": "clientEmail",
+              "type": "string",
+              "value": "={{ ($json.body?.client_email ?? $json.client_email ?? \"\").toString().trim().toLowerCase() }}"
+            },
+            {
+              "id": "n3",
+              "name": "serviceTier",
+              "type": "string",
+              "value": "={{ ($json.body?.service_tier ?? $json.service_tier ?? \"\").toString().trim() }}"
+            },
+            {
+              "id": "n4",
+              "name": "amount",
+              "type": "number",
+              "value": "={{ Number($json.body?.amount ?? $json.amount ?? 0) }}"
+            },
+            {
+              "id": "n5",
+              "name": "currency",
+              "type": "string",
+              "value": "usd"
+            },
+            {
+              "id": "n6",
+              "name": "successUrl",
+              "type": "string",
+              "value": "https://example.com/payment-success"
+            },
+            {
+              "id": "n7",
+              "name": "cancelUrl",
+              "type": "string",
+              "value": "https://example.com/payment-cancelled"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7e94c4ec-d52b-4802-83ec-33179870d145",
+      "name": "Normalize Intake Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "v1",
+              "leftValue": "={{ $json.clientName }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "v2",
+              "leftValue": "={{ $json.clientEmail }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            },
+            {
+              "id": "v3",
+              "leftValue": "={{ $json.serviceTier }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "v4",
+              "leftValue": "={{ $json.amount }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "rightValue": 0
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "684f7d75-7a25-4142-8a0b-0dd983b08224",
+      "name": "Valid Payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -576,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appXXXXXXXXXXXXXX"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblXXXXXXXXXXXXXX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Client Name": "={{ $json.clientName }}",
+            "Email": "={{ $json.clientEmail }}",
+            "Service Tier": "={{ $json.serviceTier }}",
+            "Amount": "={{ $json.amount }}",
+            "Status": "Pending Payment"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Tier",
+              "displayName": "Service Tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "4d2135e0-d513-400e-9d34-3a1f7bf6ad33",
+      "name": "Create Client Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.stripe.com/v1/checkout/sessions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "stripeApi",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "mode",
+              "value": "payment"
+            },
+            {
+              "name": "success_url",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.successUrl }}"
+            },
+            {
+              "name": "cancel_url",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.cancelUrl }}"
+            },
+            {
+              "name": "customer_email",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.clientEmail }}"
+            },
+            {
+              "name": "line_items[0][quantity]",
+              "value": "1"
+            },
+            {
+              "name": "line_items[0][price_data][currency]",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.currency }}"
+            },
+            {
+              "name": "line_items[0][price_data][unit_amount]",
+              "value": "={{ Math.round($(\"Normalize Intake Payload\").item.json.amount * 100) }}"
+            },
+            {
+              "name": "line_items[0][price_data][product_data][name]",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.serviceTier }} Service Package - {{ $(\"Normalize Intake Payload\").item.json.clientName }}"
+            },
+            {
+              "name": "metadata[airtable_record_id]",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "metadata[client_email]",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.clientEmail }}"
+            },
+            {
+              "name": "metadata[client_name]",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.clientName }}"
+            },
+            {
+              "name": "metadata[service_tier]",
+              "value": "={{ $(\"Normalize Intake Payload\").item.json.serviceTier }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59ab3186-249a-444d-9d76-0c3381578c4c",
+      "name": "Create Stripe Checkout Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -16,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Normalize Intake Payload').first().json.clientEmail }}",
+        "subject": "=Your {{ $('Normalize Intake Payload').first().json.serviceTier }} Service Agreement & Payment Link",
+        "message": "=<div style=\"font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1f2937;line-height:1.5\"><p>Hello {{ String($('Normalize Intake Payload').first().json.clientName).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }},</p><p>Thank you for choosing our <strong>{{ String($('Normalize Intake Payload').first().json.serviceTier).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }}</strong> package. Your service agreement is attached as a PDF for your review.</p><p>To get started, please complete your payment of <strong>{{ $('Normalize Intake Payload').first().json.amount }} {{ String($('Normalize Intake Payload').first().json.currency).toUpperCase() }}</strong> using the secure Stripe checkout link below.</p><p style=\"margin:24px 0\"><a href=\"{{ $('Create Stripe Checkout Session').first().json.url }}\" style=\"background:#635bff;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold\">Pay securely with Stripe</a></p><p>Your onboarding begins automatically once your payment is confirmed.</p><p>Kind regards,<br>Enterprise Operations</p></div>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "contractPdf"
+              }
+            ]
+          },
+          "senderName": "Enterprise Operations"
+        }
+      },
+      "id": "3b09701b-c783-4996-b0c8-a33483f20f8f",
+      "name": "Email Contract & Payment Link",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2272,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"message\": \"Contract and payment link sent\", \"airtable_record_id\": $(\"Create Client Record\").first().json.id, \"checkout_url\": $(\"Create Stripe Checkout Session\").first().json.url } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "2fa1453c-3a48-43e3-9d77-75c03a693706",
+      "name": "Respond 200 Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2544,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"partial\", \"message\": \"Client record and checkout session created but the contract email could not be sent\", \"airtable_record_id\": $(\"Create Client Record\").first().json.id, \"checkout_url\": $(\"Create Stripe Checkout Session\").first().json.url } }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "fda116c6-cbee-4f6c-b56f-593fe7aec224",
+      "name": "Respond 502 Email Failed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2576,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"error\",\"message\":\"Invalid payload. Required: client_name, client_email (valid email), service_tier, amount (number > 0).\"}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "5b07bab3-daca-4d51-b318-83f432d5a2b0",
+      "name": "Respond 400 Invalid Payload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -288,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "events": [
+          "checkout.session.completed"
+        ]
+      },
+      "id": "b8aa2127-bc58-4d0d-a45d-6ad9b7376f64",
+      "name": "Stripe Checkout Completed",
+      "type": "n8n-nodes-base.stripeTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "p1",
+              "name": "paymentStatus",
+              "type": "string",
+              "value": "={{ $json.data.object.payment_status ?? \"\" }}"
+            },
+            {
+              "id": "p2",
+              "name": "sessionId",
+              "type": "string",
+              "value": "={{ $json.data.object.id ?? \"\" }}"
+            },
+            {
+              "id": "p3",
+              "name": "recordId",
+              "type": "string",
+              "value": "={{ $json.data.object.metadata?.airtable_record_id ?? \"\" }}"
+            },
+            {
+              "id": "p4",
+              "name": "clientEmail",
+              "type": "string",
+              "value": "={{ ($json.data.object.metadata?.client_email ?? $json.data.object.customer_details?.email ?? $json.data.object.customer_email ?? \"\").toLowerCase() }}"
+            },
+            {
+              "id": "p5",
+              "name": "clientName",
+              "type": "string",
+              "value": "={{ $json.data.object.metadata?.client_name ?? $json.data.object.customer_details?.name ?? \"Client\" }}"
+            },
+            {
+              "id": "p6",
+              "name": "serviceTier",
+              "type": "string",
+              "value": "={{ $json.data.object.metadata?.service_tier ?? \"\" }}"
+            },
+            {
+              "id": "p7",
+              "name": "amountPaid",
+              "type": "number",
+              "value": "={{ ($json.data.object.amount_total ?? 0) / 100 }}"
+            },
+            {
+              "id": "p8",
+              "name": "currency",
+              "type": "string",
+              "value": "={{ ($json.data.object.currency ?? \"usd\").toUpperCase() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e83666bc-06b9-4c6e-aa96-b70eadf872f8",
+      "name": "Extract Payment Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -736,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "pc1",
+              "leftValue": "={{ $json.paymentStatus }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "paid"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e99eb5db-3398-4cba-9eed-3e7370da28f6",
+      "name": "Payment Confirmed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -464,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appXXXXXXXXXXXXXX"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblXXXXXXXXXXXXXX"
+        },
+        "filterByFormula": "=OR(RECORD_ID() = '{{ $json.recordId }}', AND({Email} = '{{ $json.clientEmail }}', {Status} = 'Pending Payment'))",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "a5149b9a-7732-4d33-8e88-28c4b1c522a5",
+      "name": "Find Client Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        1504
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "rf1",
+              "leftValue": "={{ $json.id }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e83f1a44-92b7-4994-94f3-54c678189585",
+      "name": "Record Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        96,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appXXXXXXXXXXXXXX"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblXXXXXXXXXXXXXX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Status": "Paid / Active",
+            "Stripe Session ID": "={{ $(\"Extract Payment Details\").item.json.sessionId }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Stripe Session ID",
+              "displayName": "Stripe Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "bd471cfa-f9b1-4dd2-8101-ab2df1eb69b2",
+      "name": "Mark Client Paid / Active",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        1296
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "channelName",
+              "type": "string",
+              "value": "={{ (() => {\n  const src = $(\"Extract Payment Details\").item.json;\n  const rid = String($(\"Find Client Record\").item?.json?.id || src.recordId || src.sessionId || \"\");\n  const suffix = rid.replace(/^rec/i, \"\").toLowerCase().replace(/[^a-z0-9]/g, \"\").slice(-6) || \"000000\";\n  const slug = String(src.clientName || \"\").toLowerCase().normalize(\"NFKD\").replace(/[^a-z0-9]+/g, \"-\").replace(/^-+|-+$/g, \"\").slice(0, 60).replace(/-+$/g, \"\");\n  return \"client-\" + (slug ? slug + \"-\" : \"\") + suffix;\n})() }}"
+            },
+            {
+              "id": "c2",
+              "name": "accountManagerSlackId",
+              "type": "string",
+              "value": "REPLACE_WITH_SLACK_USER_ID"
+            },
+            {
+              "id": "c3",
+              "name": "onboardingLeadSlackId",
+              "type": "string",
+              "value": "REPLACE_WITH_SLACK_USER_ID"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1dd69a43-6bc1-4667-a0fa-b3c3a9a3408d",
+      "name": "Prepare Channel & Team Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1456,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "channel",
+        "channelId": "={{ $json.channelName }}",
+        "channelVisibility": "private"
+      },
+      "id": "72d3f7ba-2aef-4a6e-9a35-31fcb9e2b0da",
+      "name": "Create Client Slack Channel",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1744,
+        1296
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "channel",
+        "operation": "invite",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "userIds": "=REPLACE_WITH_SLACK_USER_ID"
+      },
+      "id": "810e5779-fe3a-44fd-a005-30f29a27ed40",
+      "name": "Invite Team Members",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        2016,
+        1296
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const client = $(\"Extract Payment Details\").first().json;\nconst cfg = $(\"Prepare Channel & Team Config\").first().json;\nconst channel = $(\"Create Client Slack Channel\").first().json;\nlet agent = {};\ntry {\n  agent = $(\"Supervisor: Onboarding Agent\").first().json || {};\n} catch (e) {\n  agent = {};\n}\nconst clean = (s) => String(s || \"\").replace(/[\\r\\n]+/g, \" \").trim();\nconst esc = (s) => clean(s).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\");\nconst name = clean(client.clientName).slice(0, 100) || \"there\";\nconst isSlackId = (id) => /^[UW][A-Z0-9]{6,}$/.test(id || \"\");\nconst am = isSlackId(cfg.accountManagerSlackId) ? \"<@\" + cfg.accountManagerSlackId + \">\" : \"your Account Manager\";\nconst ol = isSlackId(cfg.onboardingLeadSlackId) ? \"<@\" + cfg.onboardingLeadSlackId + \">\" : \"the Onboarding Lead\";\nconst tier = esc(client.serviceTier).slice(0, 80) || \"Service\";\nconst paid = esc(client.amountPaid + \" \" + client.currency);\nconst summary = typeof agent.welcomeSummary === \"string\" && agent.welcomeSummary.trim() ? esc(agent.welcomeSummary).slice(0, 500) : \"\";\nconst agentSteps = Array.isArray(agent.onboardingSteps)\n  ? agent.onboardingSteps.filter((s) => typeof s === \"string\" && s.trim()).slice(0, 6).map((s) => esc(s).slice(0, 250))\n  : [];\nconst steps = agentSteps.length >= 3\n  ? agentSteps\n  : [\n      \"Kick-off: \" + am + \" will propose a kick-off call time here.\",\n      \"Access: share any accounts, assets or documents we need in this channel.\",\n      \"Scope: \" + ol + \" will confirm the scope, milestones and timeline.\",\n      \"Updates: project status and questions are handled in this channel.\"\n    ];\nconst stepsText = \"*Project onboarding steps*\\n\" + steps.map((s, i) => (i + 1) + \". \" + s).join(\"\\n\");\nconst blocks = [\n  { type: \"header\", text: { type: \"plain_text\", text: \"Welcome aboard, \" + name + \"!\", emoji: true } },\n  { type: \"section\", text: { type: \"mrkdwn\", text: \"Thank you for your payment of *\" + paid + \"* for the *\" + tier + \"* package. Your engagement is now *active* and this private channel is your dedicated workspace with our team.\" } }\n];\nif (summary) {\n  blocks.push({ type: \"section\", text: { type: \"mrkdwn\", text: summary } });\n}\nblocks.push({ type: \"divider\" });\nblocks.push({ type: \"section\", fields: [\n  { type: \"mrkdwn\", text: \"*Account Manager*\\n\" + am },\n  { type: \"mrkdwn\", text: \"*Onboarding Lead*\\n\" + ol },\n  { type: \"mrkdwn\", text: \"*Service Tier*\\n\" + tier },\n  { type: \"mrkdwn\", text: \"*Payment Reference*\\n\" + esc(client.sessionId) }\n] });\nblocks.push({ type: \"section\", text: { type: \"mrkdwn\", text: stepsText } });\nblocks.push({ type: \"context\", elements: [ { type: \"mrkdwn\", text: \"Reply here any time and the team will pick it up.\" } ] });\nreturn [{ json: { channelId: channel.id, text: \"Welcome aboard, \" + name + \"! Your engagement is now active.\", blocksJson: JSON.stringify({ blocks: blocks }) } }];"
+      },
+      "id": "f3149234-ced7-4ba1-8141-47b47e0f161c",
+      "name": "Build Welcome Blocks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2304,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ $json.blocksJson }}",
+        "text": "={{ $json.text }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "c65078e2-8a9a-4ec6-9319-e638287738c2",
+      "name": "Post Welcome Message",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        2576,
+        1296
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:warning: *Client paid but Slack channel creation failed*\n• Client: {{ String($(\"Extract Payment Details\").first().json.clientName).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }}\n• Attempted channel: {{ $(\"Prepare Channel & Team Config\").first().json.channelName }}\n• Error: {{ String($json.error?.message ?? $json.error ?? \"unknown\").replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }}\nAirtable is already marked Paid / Active. Please create the channel manually.",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "957fef18-a96a-47bf-9038-d51d7a0eef4e",
+      "name": "Alert: Channel Creation Failed",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1744,
+        1504
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:warning: *Payment received but no matching Airtable client record*\n• Client: {{ $(\"Extract Payment Details\").item.json.clientName }} ({{ $(\"Extract Payment Details\").item.json.clientEmail }})\n• Amount: {{ $(\"Extract Payment Details\").item.json.amountPaid }} {{ $(\"Extract Payment Details\").item.json.currency }}\n• Stripe session: {{ $(\"Extract Payment Details\").item.json.sessionId }}\nPlease reconcile manually.",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "5ca2ee8e-c28f-4330-a7ea-a9f1187a1f5a",
+      "name": "Alert: Unmatched Payment",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        384,
+        1696
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "56fc7259-6734-44fa-ae80-75157ea4aff6",
+      "name": "Every Monday 9:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1024,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appXXXXXXXXXXXXXX"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblXXXXXXXXXXXXXX"
+        },
+        "options": {}
+      },
+      "id": "c0c52c6d-fb99-47d9-a025-3c72eae3d580",
+      "name": "Fetch All Clients",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -736,
+        2096
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map((i) => i.json).filter((r) => r && (r.id || r.fields));\nconst now = new Date();\nconst weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\n\n// دالة لاستخراج قيمة أي حقل سواء كان داخل fields أو في الـ root مباشرة\nconst getVal = (r, fieldName) => {\n  if (r.fields && r.fields[fieldName] !== undefined) {\n    return r.fields[fieldName];\n  }\n  return r[fieldName];\n};\n\n// تحويل المبلغ لرقم\nconst amt = (r) => {\n  const val = getVal(r, \"Amount\");\n  return typeof val === 'number' ? val : parseFloat(val) || 0;\n};\n\nconst sum = (arr) => Math.round(arr.reduce((t, r) => t + amt(r), 0) * 100) / 100;\n\n// فحص حالة العميل\nconst isActive = (r) => {\n  const status = (getVal(r, \"Status\") || \"\").toString().trim().toLowerCase();\n  return status.includes(\"paid\") || status.includes(\"active\");\n};\n\nconst isPending = (r) => {\n  const status = (getVal(r, \"Status\") || \"\").toString().trim().toLowerCase();\n  return status.includes(\"pending\");\n};\n\n// فحص تاريخ التسجيل (باستخدام createdTime الخاص بـ Airtable)\nconst isNew = (r) => {\n  const created = r.createdTime || getVal(r, \"createdTime\");\n  return created && new Date(created) >= weekAgo;\n};\n\nconst active = rows.filter(isActive);\nconst pending = rows.filter(isPending);\nconst fresh = rows.filter(isNew);\n\nconst tiers = {};\nactive.forEach((r) => { \n  const t = getVal(r, \"Service Tier\") || \"Unspecified\"; \n  tiers[t] = (tiers[t] || 0) + 1; \n});\n\nconst clientNames = fresh.map((r) => getVal(r, \"Client Name\")).filter(Boolean);\n\nreturn [{ json: {\n  weekEnding: now.toISOString().slice(0, 10),\n  totalClients: rows.length,\n  activeClients: active.length,\n  totalRevenue: sum(active),\n  pendingPaymentsCount: pending.length,\n  pendingPaymentsValue: sum(pending),\n  newSignupsThisWeek: fresh.length,\n  newSignupsPaid: fresh.filter(isActive).length,\n  newSignupsRevenue: sum(fresh.filter(isActive)),\n  activeClientsByTier: tiers,\n  newClientNames: clientNames\n} }];"
+      },
+      "id": "6027d6ce-0bac-4a11-9427-c6fcac5af4ed",
+      "name": "Compute Weekly Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:bar_chart: *Weekly Executive Summary* (week ending {{ $(\"Compute Weekly Metrics\").item.json.weekEnding }})\n\n{{ $json.text ?? \"_AI digest unavailable this week. Raw metrics:_ Active clients: \" + $(\"Compute Weekly Metrics\").item.json.activeClients + \" | Revenue: \" + $(\"Compute Weekly Metrics\").item.json.totalRevenue + \" | New signups: \" + $(\"Compute Weekly Metrics\").item.json.newSignupsThisWeek + \" | Pending payments: \" + $(\"Compute Weekly Metrics\").item.json.pendingPaymentsCount }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "1fd69a58-ea43-4778-8a3b-bd0040255af7",
+      "name": "Post Digest to #management-updates",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        96,
+        2096
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {},
+      "id": "9e60be3b-4460-44df-b636-114e8d16ccb9",
+      "name": "Workflow Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:rotating_light: *Workflow failure*\n• Workflow: {{ $json.workflow.name }}\n• Failed node: {{ $json.execution.lastNodeExecuted }}\n• Error: {{ $json.execution.error?.message ?? \"unknown\" }}\n• Execution: {{ $json.execution.url }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "837a8c63-02ad-4ced-b373-edc98dea500a",
+      "name": "Alert: Workflow Failure",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1440,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Path 1: Intake & Contract (PDF)\nPOST /webhook/enterprise-ops/client-intake\nAirtable (Pending Payment) -> Stripe Checkout -> Save session ID -> Supervisor(contract) -> HTML -> index.html -> Gotenberg PDF -> Google Drive -> Merge (restore PDF) -> Gmail (PDF + Stripe link) -> HTTP response\nGotenberg URL: edit it in 'Gotenberg: HTML to PDF'. PDF/HTML failures alert #management-updates and answer 502 with the checkout URL.",
+        "height": 800,
+        "width": 3968,
+        "color": 4
+      },
+      "id": "c088e0cd-412f-4bb1-9c79-0c1d3ebac6eb",
+      "name": "Sticky Note c1af61d0",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Path 2: Payment & Onboarding\nStripe checkout.session.completed -> paid? -> record found? -> already active? (ignore) -> amount/currency/session match? -> Paid / Active -> Supervisor(onboarding) -> Slack channel, invites, welcome\nUnconfirmed / unmatched / mismatched payments alert #management-updates and never onboard.",
+        "height": 656,
+        "width": 3964,
+        "color": 5
+      },
+      "id": "9b93bff4-cbde-4601-90ef-14cbea708f88",
+      "name": "Sticky Note 5006e237",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        1216
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Path 3: Weekly Executive Summary\nMonday 09:00 -> Airtable metrics -> Supervisor(executive_digest) -> #management-updates",
+        "height": 360,
+        "width": 1564,
+        "color": 6
+      },
+      "id": "f772d8be-d3a5-4aea-a855-d28e5539e5ab",
+      "name": "Sticky Note 404c9160",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        1968
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Multi-agent architecture\nSupervisor: REPLACE_WITH_SUPERVISOR_WORKFLOW_ID (deterministic router)\nAgent A Contract: REPLACE_WITH_AGENT_A_WORKFLOW_ID\nAgent B Onboarding: REPLACE_WITH_AGENT_B_WORKFLOW_ID\nAgent C Executive Reporting: REPLACE_WITH_AGENT_C_WORKFLOW_ID\nOld records without a saved Stripe Session ID will fail payment validation by design.",
+        "height": 360,
+        "width": 1348,
+        "color": 3
+      },
+      "id": "024253a4-cf68-4e71-ad4d-e33e250ab0b1",
+      "name": "Sticky Note 2ada0e43",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        384,
+        1968
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#management-updates",
+          "mode": "name"
+        },
+        "text": "=:warning: Payment Not Confirmed\n\nClient: {{ $json.clientName }}\nEmail: {{ $json.clientEmail }}\nPayment Status: {{ $json.paymentStatus }}\nAmount: {{ $json.amountPaid }} {{ $json.currency }}\nSession: {{ $json.sessionId }}\n\nClient activation is on hold until payment is confirmed.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        -208,
+        1648
+      ],
+      "id": "969fea11-327d-4ec6-b236-12011e5c3c44",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appXXXXXXXXXXXXXX"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblXXXXXXXXXXXXXX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": true,
+              "display": true,
+              "displayName": "id",
+              "id": "id",
+              "removed": false,
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": false,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "Stripe Session ID",
+              "id": "Stripe Session ID",
+              "required": false,
+              "type": "string"
+            }
+          ],
+          "value": {
+            "Stripe Session ID": "={{ $json.id }}",
+            "id": "={{ $(\"Create Client Record\").item.json.id }}"
+          }
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "db58dc61-8060-4c47-afb8-dcbcffbed6b2",
+      "name": "Save Checkout Session ID",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_SUPERVISOR_WORKFLOW_ID"
+        },
+        "workflowInputs": {
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "task_type",
+              "id": "task_type",
+              "removed": false,
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "payload",
+              "id": "payload",
+              "removed": false,
+              "required": false,
+              "type": "object"
+            }
+          ],
+          "value": {
+            "payload": "={{ { clientName: $(\"Normalize Intake Payload\").first().json.clientName, clientEmail: $(\"Normalize Intake Payload\").first().json.clientEmail, serviceTier: $(\"Normalize Intake Payload\").first().json.serviceTier, amount: $(\"Normalize Intake Payload\").first().json.amount, currency: $(\"Normalize Intake Payload\").first().json.currency, agreementDate: $now.toFormat(\"MMMM d, yyyy\") } }}",
+            "task_type": "contract"
+          }
+        },
+        "options": {}
+      },
+      "id": "89c807fc-dd46-4f6a-93d8-845854c4ab74",
+      "name": "Supervisor: Contract Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        528
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "aa1",
+              "leftValue": "={{ $json.Status ?? $json.fields?.Status ?? \"\" }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "Paid / Active"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "id": "9c4b7fd3-a5cb-4589-9582-aecc5b132048",
+      "name": "Already Active?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        1408
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7ee44b22-e397-4aa5-9ef1-9df3e280ef1c",
+      "name": "Duplicate Event Ignored",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        624,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "pm1",
+              "leftValue": "={{ $json.Status ?? $json.fields?.Status ?? \"\" }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "Pending Payment"
+            },
+            {
+              "id": "pm2",
+              "leftValue": "={{ Math.abs(Number($json.Amount ?? $json.fields?.Amount) - Number($(\"Extract Payment Details\").first().json.amountPaid)) < 0.005 }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              }
+            },
+            {
+              "id": "pm3",
+              "leftValue": "={{ $(\"Extract Payment Details\").first().json.currency }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "USD"
+            },
+            {
+              "id": "pm4",
+              "leftValue": "={{ $json[\"Stripe Session ID\"] ?? $json.fields?.[\"Stripe Session ID\"] ?? \"\" }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              }
+            },
+            {
+              "id": "pm5",
+              "leftValue": "={{ $json[\"Stripe Session ID\"] ?? $json.fields?.[\"Stripe Session ID\"] ?? \"\" }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "={{ $(\"Extract Payment Details\").first().json.sessionId }}"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "id": "4ae576bb-d0b0-4f9e-9797-65bc292002b4",
+      "name": "Payment Matches Record?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:warning: *Payment received but failed validation. Client NOT activated.*\n• Client: {{ String($(\"Extract Payment Details\").first().json.clientName).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }} ({{ String($(\"Extract Payment Details\").first().json.clientEmail).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }})\n• Paid in Stripe: {{ $(\"Extract Payment Details\").first().json.amountPaid }} {{ $(\"Extract Payment Details\").first().json.currency }}\n• Airtable amount: {{ $json.Amount ?? $json.fields?.Amount ?? \"n/a\" }} | status: {{ $json.Status ?? $json.fields?.Status ?? \"n/a\" }}\n• Airtable session: {{ $json[\"Stripe Session ID\"] ?? $json.fields?.[\"Stripe Session ID\"] ?? \"none\" }}\n• Stripe session: {{ $(\"Extract Payment Details\").first().json.sessionId }}\nPlease review manually before activating.",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "00e80405-242d-4bcf-9378-f6c3e4a06675",
+      "name": "Alert: Payment Validation Failed",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        1504
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_SUPERVISOR_WORKFLOW_ID"
+        },
+        "workflowInputs": {
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "task_type",
+              "id": "task_type",
+              "removed": false,
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "payload",
+              "id": "payload",
+              "removed": false,
+              "required": false,
+              "type": "object"
+            }
+          ],
+          "value": {
+            "payload": "={{ { clientName: $(\"Extract Payment Details\").first().json.clientName, serviceTier: $(\"Extract Payment Details\").first().json.serviceTier, amountPaid: $(\"Extract Payment Details\").first().json.amountPaid, currency: $(\"Extract Payment Details\").first().json.currency, recordId: $(\"Mark Client Paid / Active\").first().json.id, recordStatus: $(\"Mark Client Paid / Active\").first().json.Status ?? $(\"Mark Client Paid / Active\").first().json.fields?.Status ?? \"\", paymentVerified: true } }}",
+            "task_type": "onboarding"
+          }
+        },
+        "options": {}
+      },
+      "id": "d2eb6fb1-24b0-4696-9d99-412de0d19f1d",
+      "name": "Supervisor: Onboarding Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1184,
+        1296
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_SUPERVISOR_WORKFLOW_ID"
+        },
+        "workflowInputs": {
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "task_type",
+              "id": "task_type",
+              "removed": false,
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "payload",
+              "id": "payload",
+              "removed": false,
+              "required": false,
+              "type": "object"
+            }
+          ],
+          "value": {
+            "payload": "={{ { metrics: $(\"Compute Weekly Metrics\").first().json } }}",
+            "task_type": "executive_digest"
+          }
+        },
+        "options": {}
+      },
+      "id": "c842dfb0-f212-4fdc-beab-0dd5c25a3173",
+      "name": "Supervisor: Executive Digest Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        2096
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const contractText = String($input.first().json.text || \"\").replace(/\\r\\n/g, \"\\n\").trim();\nif (!contractText) {\n  throw new Error(\"Contract Agent returned no contract text, cannot build the PDF\");\n}\nconst client = $(\"Normalize Intake Payload\").first().json;\nconst esc = (s) => String(s === undefined || s === null ? \"\" : s)\n  .replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\").replace(/\"/g, \"&quot;\").replace(/'/g, \"&#39;\");\n\nconst lines = contractText.split(\"\\n\").map((l) => l.replace(/\\s+$/g, \"\"));\nconst blocks = [];\nlet para = [];\nlet list = [];\nlet started = false;\nconst flushPara = () => {\n  if (para.length) { blocks.push('<p dir=\"auto\">' + para.map(esc).join(\"<br>\") + \"</p>\"); para = []; }\n};\nconst flushList = () => {\n  if (list.length) { blocks.push('<ul dir=\"auto\">' + list.map((li) => \"<li>\" + esc(li) + \"</li>\").join(\"\") + \"</ul>\"); list = []; }\n};\nfor (const raw of lines) {\n  const line = raw.trim();\n  if (!line) { flushPara(); flushList(); continue; }\n  if (/^_{5,}$/.test(line)) { flushPara(); flushList(); blocks.push('<div class=\"sig-line\"></div>'); started = true; continue; }\n  const bullet = line.match(/^[-\\u2022*]\\s+(.*)$/);\n  if (bullet) { flushPara(); list.push(bullet[1]); started = true; continue; }\n  flushList();\n  const isNumbered = /^\\d+[.)]\\s+[^.!?:;]{1,70}$/.test(line);\n  const isCaps = /^[A-Z0-9][A-Z0-9 &\\/,'()\\-]{2,70}$/.test(line) && /[A-Z]/.test(line);\n  if (!started && isCaps) { blocks.push('<h1 dir=\"auto\">' + esc(line) + \"</h1>\"); started = true; continue; }\n  started = true;\n  if (isNumbered || isCaps) { flushPara(); blocks.push('<h2 dir=\"auto\">' + esc(line) + \"</h2>\"); continue; }\n  para.push(line);\n}\nflushPara();\nflushList();\n\nconst currency = String(client.currency || \"\").toUpperCase();\nconst feeText = client.amount ? client.amount + \" \" + currency : \"\";\nconst meta = '<table class=\"meta\">'\n  + '<tr><th>Client</th><td dir=\"auto\">' + esc(client.clientName) + \"</td></tr>\"\n  + '<tr><th>Email</th><td dir=\"auto\">' + esc(client.clientEmail) + \"</td></tr>\"\n  + '<tr><th>Service package</th><td dir=\"auto\">' + esc(client.serviceTier) + \"</td></tr>\"\n  + '<tr><th>Fee</th><td dir=\"auto\">' + esc(feeText) + \"</td></tr>\"\n  + \"</table>\";\nif (blocks.length && blocks[0].indexOf(\"<h1\") === 0) {\n  blocks.splice(1, 0, meta);\n} else {\n  blocks.unshift('<h1>Service Agreement</h1>', meta);\n}\n\nconst css = [\n  \"@page { size: A4; margin: 22mm 20mm; }\",\n  \"* { box-sizing: border-box; }\",\n  'body { font-family: Georgia, \"Times New Roman\", \"Noto Serif\", serif; font-size: 11pt; line-height: 1.55; color: #1f2937; margin: 0; }',\n  \"h1 { font-size: 20pt; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; margin: 0 0 14px; padding-bottom: 10px; border-bottom: 2px solid #1f2937; }\",\n  \"h2 { font-size: 12pt; margin: 20px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #d1d5db; break-after: avoid; }\",\n  \"p { margin: 0 0 9px; orphans: 3; widows: 3; }\",\n  \"ul { margin: 0 0 9px; padding-left: 22px; }\",\n  \"li { margin-bottom: 3px; }\",\n  \".meta { width: 100%; border-collapse: collapse; margin: 0 0 8px; font-size: 10.5pt; }\",\n  \".meta th, .meta td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; vertical-align: top; }\",\n  \".meta th { width: 30%; background: #f3f4f6; font-weight: bold; }\",\n  \".sig-line { border-bottom: 1px solid #1f2937; height: 30px; width: 60%; margin: 16px 0 2px; }\"\n].join(\"\\n\");\n\nconst html = '<!DOCTYPE html>\\n<html lang=\"en\">\\n<head>\\n<meta charset=\"utf-8\">\\n<title>Service Agreement - ' + esc(client.clientName) + \"</title>\\n<style>\\n\" + css + \"\\n</style>\\n</head>\\n<body>\\n\" + blocks.join(\"\\n\") + \"\\n</body>\\n</html>\";\n\nconst safeName = String(client.clientName || \"\").replace(/[\\\\\\/:*?\"<>|\\u0000-\\u001f]+/g, \" \").replace(/\\s+/g, \" \").trim().slice(0, 60) || \"Client\";\nconst pdfFileName = \"Service Agreement - \" + safeName + \" - \" + new Date().toISOString().slice(0, 10) + \".pdf\";\n\nreturn [{ json: { html: html, pdfFileName: pdfFileName } }];"
+      },
+      "id": "99d3c8b9-4231-4f58-9705-7c02207055ec",
+      "name": "Build Contract HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        528
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "html",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "index.html"
+        }
+      },
+      "id": "1496679e-7a73-411f-bf0a-3a6ad29cec1f",
+      "name": "Create HTML File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/forms/chromium/convert/html",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "preferCssPageSize",
+              "value": "true"
+            },
+            {
+              "name": "printBackground",
+              "value": "true"
+            },
+            {
+              "name": "emulatedMediaType",
+              "value": "print"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "contractPdf"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "507f42bb-6268-4bb3-a218-a57b872a1ba5",
+      "name": "Gotenberg: HTML to PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const meta = $(\"Build Contract HTML\").first().json;\nconst item = $input.first();\nif (!item.binary || !item.binary.contractPdf) {\n  throw new Error(\"Gotenberg did not return a PDF (binary property contractPdf is missing)\");\n}\nconst buf = await this.helpers.getBinaryDataBuffer(0, \"contractPdf\");\nif (buf.length < 100 || buf.subarray(0, 5).toString(\"latin1\") !== \"%PDF-\") {\n  throw new Error(\"Gotenberg response is not a valid PDF\");\n}\nitem.binary.contractPdf.fileName = meta.pdfFileName;\nitem.binary.contractPdf.mimeType = \"application/pdf\";\nreturn [{ json: { pdfFileName: meta.pdfFileName, pdfBytes: buf.length }, binary: item.binary }];"
+      },
+      "id": "4abcad0c-e333-40e9-b828-a550cafe1da7",
+      "name": "Name & Validate Contract PDF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        528
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "contractPdf",
+        "name": "={{ $json.pdfFileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "cachedResultName": "/ (Root folder)",
+          "mode": "list",
+          "value": "root"
+        },
+        "options": {}
+      },
+      "id": "93f5788b-aa84-4b8b-910c-9a7f8744c67a",
+      "name": "Save Contract to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1616,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "c86bd2ee-5403-478b-bde8-5d140ee6cac3",
+      "name": "Merge PDF Binary Back",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2000,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:warning: *Contract PDF step failed. The client was NOT emailed.*\n• Client: {{ String($(\"Normalize Intake Payload\").first().json.clientName).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }} ({{ String($(\"Normalize Intake Payload\").first().json.clientEmail).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }})\n• Error: {{ String($json.error?.message ?? $json.error ?? \"unknown\").replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }}\n• Checkout URL (send manually if needed): {{ $(\"Create Stripe Checkout Session\").first().json.url }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "40d0d572-ba68-4d8b-a7e9-65c589acee77",
+      "name": "Alert: Contract PDF Failed",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1632,
+        784
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#management-updates"
+        },
+        "text": "=:file_folder: *Contract PDF could not be saved to Google Drive.* The client email will still be sent.\n• Client: {{ String($(\"Normalize Intake Payload\").first().json.clientName).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }}\n• File: {{ $(\"Name & Validate Contract PDF\").first().json.pdfFileName }}\n• Error: {{ String($json.error?.message ?? $json.error ?? \"unknown\").replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\") }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "41ae8eb2-5a60-4e37-ae83-1a38192f5058",
+      "name": "Alert: Contract Archive Failed",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1872,
+        656
+      ],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Client Intake Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Intake Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Intake Payload": {
+      "main": [
+        [
+          {
+            "node": "Valid Payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Payload?": {
+      "main": [
+        [
+          {
+            "node": "Create Client Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 400 Invalid Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Client Record": {
+      "main": [
+        [
+          {
+            "node": "Create Stripe Checkout Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Contract & Payment Link": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 502 Email Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stripe Checkout Completed": {
+      "main": [
+        [
+          {
+            "node": "Extract Payment Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Payment Details": {
+      "main": [
+        [
+          {
+            "node": "Payment Confirmed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Confirmed?": {
+      "main": [
+        [
+          {
+            "node": "Find Client Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Client Record": {
+      "main": [
+        [
+          {
+            "node": "Record Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Found?": {
+      "main": [
+        [
+          {
+            "node": "Already Active?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert: Unmatched Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Channel & Team Config": {
+      "main": [
+        [
+          {
+            "node": "Create Client Slack Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Client Slack Channel": {
+      "main": [
+        [
+          {
+            "node": "Invite Team Members",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert: Channel Creation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invite Team Members": {
+      "main": [
+        [
+          {
+            "node": "Build Welcome Blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Welcome Blocks": {
+      "main": [
+        [
+          {
+            "node": "Post Welcome Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Monday 9:00 AM": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Clients": {
+      "main": [
+        [
+          {
+            "node": "Compute Weekly Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Alert: Workflow Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Stripe Checkout Session": {
+      "main": [
+        [
+          {
+            "node": "Save Checkout Session ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Checkout Session ID": {
+      "main": [
+        [
+          {
+            "node": "Supervisor: Contract Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Already Active?": {
+      "main": [
+        [
+          {
+            "node": "Duplicate Event Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Matches Record?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Matches Record?": {
+      "main": [
+        [
+          {
+            "node": "Mark Client Paid / Active",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert: Payment Validation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Client Paid / Active": {
+      "main": [
+        [
+          {
+            "node": "Supervisor: Onboarding Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supervisor: Onboarding Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare Channel & Team Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Weekly Metrics": {
+      "main": [
+        [
+          {
+            "node": "Supervisor: Executive Digest Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supervisor: Executive Digest Agent": {
+      "main": [
+        [
+          {
+            "node": "Post Digest to #management-updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supervisor: Contract Agent": {
+      "main": [
+        [
+          {
+            "node": "Build Contract HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Contract HTML": {
+      "main": [
+        [
+          {
+            "node": "Create HTML File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert: Contract PDF Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HTML File": {
+      "main": [
+        [
+          {
+            "node": "Gotenberg: HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gotenberg: HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Name & Validate Contract PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert: Contract PDF Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name & Validate Contract PDF": {
+      "main": [
+        [
+          {
+            "node": "Save Contract to Google Drive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge PDF Binary Back",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Alert: Contract PDF Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Contract to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Merge PDF Binary Back",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge PDF Binary Back",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alert: Contract Archive Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge PDF Binary Back": {
+      "main": [
+        [
+          {
+            "node": "Email Contract & Payment Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert: Contract PDF Failed": {
+      "main": [
+        [
+          {
+            "node": "Respond 502 Email Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

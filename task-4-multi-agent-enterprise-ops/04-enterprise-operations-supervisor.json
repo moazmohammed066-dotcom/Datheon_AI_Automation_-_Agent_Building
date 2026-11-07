@@ -1,0 +1,507 @@
+{
+  "name": "Enterprise Operations Supervisor",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "0cddafdc-7379-487f-b1c1-ee1c92530e4e",
+      "name": "When Called by Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.task_type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "contract"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "contract"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "r2",
+                    "leftValue": "={{ $json.task_type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "onboarding"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "onboarding"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "r3",
+                    "leftValue": "={{ $json.task_type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "executive_digest"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "executive_digest"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "unsupported"
+        }
+      },
+      "id": "6733f362-37e6-48c7-a52a-ca377f568da0",
+      "name": "Route by task_type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_AGENT_A_WORKFLOW_ID"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clientName": "={{ $json.payload.clientName }}",
+            "clientEmail": "={{ $json.payload.clientEmail }}",
+            "serviceTier": "={{ $json.payload.serviceTier }}",
+            "amount": "={{ $json.payload.amount }}",
+            "currency": "={{ $json.payload.currency }}",
+            "agreementDate": "={{ $json.payload.agreementDate }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "clientName",
+              "displayName": "clientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "clientEmail",
+              "displayName": "clientEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "serviceTier",
+              "displayName": "serviceTier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "agreementDate",
+              "displayName": "agreementDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "44e0b6d0-65d4-40e0-a231-b53f97dfbac9",
+      "name": "Call Agent A - Contract",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "g1",
+              "leftValue": "={{ $json.payload.paymentVerified }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "g2",
+              "leftValue": "={{ $json.payload.recordStatus }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "Paid / Active"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "58ad3211-868b-4e87-8ba5-f3917c0a3887",
+      "name": "Onboarding Guard",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_AGENT_B_WORKFLOW_ID"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clientName": "={{ $json.payload.clientName }}",
+            "serviceTier": "={{ $json.payload.serviceTier }}",
+            "amountPaid": "={{ $json.payload.amountPaid }}",
+            "currency": "={{ $json.payload.currency }}",
+            "recordId": "={{ $json.payload.recordId }}",
+            "recordStatus": "={{ $json.payload.recordStatus }}",
+            "paymentVerified": "={{ $json.payload.paymentVerified }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "clientName",
+              "displayName": "clientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "serviceTier",
+              "displayName": "serviceTier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "amountPaid",
+              "displayName": "amountPaid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recordId",
+              "displayName": "recordId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recordStatus",
+              "displayName": "recordStatus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "paymentVerified",
+              "displayName": "paymentVerified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e4381baf-258d-4a00-850f-7b88252263b5",
+      "name": "Call Agent B - Onboarding",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "Onboarding request rejected by Supervisor: payload.paymentVerified must be true and payload.recordStatus must be \"Paid / Active\"."
+      },
+      "id": "e62cb3e1-8da1-4bbd-b6ed-55039596979f",
+      "name": "Reject Onboarding: Not Verified",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        864,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_AGENT_C_WORKFLOW_ID"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "metrics": "={{ $json.payload.metrics }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "metrics",
+              "displayName": "metrics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "8ce289c3-ffac-4b7e-aec0-867c4f9ec09c",
+      "name": "Call Agent C - Executive Reporting",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=Unsupported task_type: {{ $json.task_type }}. Supported values: contract, onboarding, executive_digest."
+      },
+      "id": "ab879347-bd5e-403f-8b29-999cf7af95ec",
+      "name": "Reject Unsupported task_type",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        800,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Enterprise Operations Supervisor\nInput: task_type (contract | onboarding | executive_digest) + payload (object)\nDeterministic routing (Switch) to exactly one specialist. Returns the specialist output unchanged.\nNever starts payments, marks payments successful, writes Airtable, sends email or acts on Slack.\nOnboarding is rejected unless payload.paymentVerified = true and payload.recordStatus = \"Paid / Active\".",
+        "height": 920,
+        "width": 1160,
+        "color": 7
+      },
+      "id": "30b8724b-17ce-4ffe-8de7-c8dd80ee33be",
+      "name": "Sticky Note 660653fa",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        16
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Called by Workflow": {
+      "main": [
+        [
+          {
+            "node": "Route by task_type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by task_type": {
+      "main": [
+        [
+          {
+            "node": "Call Agent A - Contract",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Onboarding Guard",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Agent C - Executive Reporting",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Unsupported task_type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Onboarding Guard": {
+      "main": [
+        [
+          {
+            "node": "Call Agent B - Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Onboarding: Not Verified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
