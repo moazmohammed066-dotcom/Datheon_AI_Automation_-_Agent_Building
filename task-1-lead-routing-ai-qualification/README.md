@@ -119,9 +119,9 @@ Create a table named **Incoming Leads** with these fields:
 | `REPLACE_WITH_SLACK_CHANNEL_ID` | *Send Sales Notification* and *Alert: Airtable Save Failed* |
 | `REPLACE_WITH_TALLY_FORM_ID` | *Tally Trigger* (pick your form from the list) |
 
-### 5. Make the AI-failure fallback active (recommended)
+### 5. AI-failure fallback (already enabled)
 
-The *AI Scoring & Validation* node contains fallback logic: if the AI call fails, it still saves the lead with `Processing Status = Needs Review` and a note, so no lead is lost. **Retry On Fail** is already enabled on the **AI Lead Qualification (Basic LLM Chain)** node and covers temporary errors. To make the fallback trigger once the retries are exhausted, open that node, go to **Settings → On Error**, and choose **Continue (using regular output)**.
+The *AI Scoring & Validation* node contains fallback logic: if the AI call fails, the lead is still saved with `Processing Status = Needs Review` and a note, so no lead is lost. In this workflow the **AI Lead Qualification (Basic LLM Chain)** node has **Retry On Fail** enabled (for temporary provider errors) and **On Error → Continue (using regular output)** (so the fallback runs once retries are exhausted). Keep both settings if you rebuild the node. Do not use *Continue (using error output)*, because that output is not connected.
 
 ### 6. Test and activate
 

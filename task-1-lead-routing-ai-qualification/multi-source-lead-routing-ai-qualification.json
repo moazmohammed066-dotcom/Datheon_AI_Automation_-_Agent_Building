@@ -711,7 +711,8 @@
         1504,
         352
       ],
-      "retryOnFail": true
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
