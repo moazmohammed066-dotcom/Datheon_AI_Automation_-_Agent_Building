@@ -710,7 +710,8 @@
       "position": [
         1504,
         352
-      ]
+      ],
+      "retryOnFail": true
     },
     {
       "parameters": {
@@ -918,8 +919,7 @@
     "binaryMode": "separate",
     "availableInMCP": false,
     "timeSavedMode": "fixed",
-    "callerPolicy": "workflowsFromSameOwner",
-    "executionTimeout": -1
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "meta": {
     "aiBuilderAssisted": true

@@ -48,7 +48,7 @@ Built with n8n, OpenRouter (`openai/gpt-4o-mini`), Tally, Airtable, and Slack.
 - **AI judges, code decides.** The model only rates *project fit* (0-30) and writes the text. Everything else in the score is deterministic, so the total cannot be inflated by model arithmetic errors or by instructions hidden in the form.
 - **Missing is not negative.** If budget, size, or timeline is blank, the workflow uses a neutral default score instead of penalising the lead, and the prompt tells the model to say what is unknown.
 - **Prompt-injection handling.** Submissions are scanned for manipulation phrases (for example "ignore previous instructions" or "score this lead 100"). A match sets `Processing Status = Needs Review` and adds a note. The system prompt also tells the model to give such text a project-fit score of 0-5.
-- **Low-latency AI call.** Temperature `0`, JSON-only output, `maxTokens: 380`, a 15 second timeout, and one retry.
+- **Low-latency, resilient AI call.** Temperature `0`, JSON-only output, `maxTokens: 380`, a 15 second timeout, and one retry at the model level. **Retry On Fail** is also enabled on the AI node to absorb transient provider errors (in the worst case, retries add to the total run time).
 - **Visible failure paths.** If the Airtable save fails, a Slack alert says the lead was **not** saved. If Slack fails, the Airtable record is flagged `Needs Review`.
 
 ## Scoring rubric (100 points)
@@ -121,7 +121,7 @@ Create a table named **Incoming Leads** with these fields:
 
 ### 5. Make the AI-failure fallback active (recommended)
 
-The *AI Scoring & Validation* node contains fallback logic: if the AI call fails, it still saves the lead with `Processing Status = Needs Review` and a note, so no lead is lost. For this to trigger, open the **AI Lead Qualification (Basic LLM Chain)** node, go to **Settings → On Error**, and choose **Continue (using regular output)**.
+The *AI Scoring & Validation* node contains fallback logic: if the AI call fails, it still saves the lead with `Processing Status = Needs Review` and a note, so no lead is lost. **Retry On Fail** is already enabled on the **AI Lead Qualification (Basic LLM Chain)** node and covers temporary errors. To make the fallback trigger once the retries are exhausted, open that node, go to **Settings → On Error**, and choose **Continue (using regular output)**.
 
 ### 6. Test and activate
 

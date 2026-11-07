@@ -74,4 +74,6 @@ Each project README lists the exact nodes to edit.
 
 ## Author
 
+**Moaz Mohammed** ([@moazmohammed066-dotcom](https://github.com/moazmohammed066-dotcom))
+
 Built as part of the **AI Automation & Agent Building Internship** at **Datheon**.
